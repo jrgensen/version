@@ -1,97 +1,69 @@
 package main
 
 import (
-	"context"
-	"encoding/json"
+	"flag"
 	"fmt"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/client"
+	//	"github.com/docker/distribution/digest"
+	//	"github.com/docker/distribution/manifest"
+	//	"github.com/docker/libtrust"
+	//	"github.com/heroku/docker-registry-client/registry"
 	"log"
 	"net/http"
-	//"version/ws"
+	"strings"
+	"version/docker"
+	"version/ws"
 )
 
-type Container struct {
-	ServiceName    string
-	ContainerNames []string
-	Image          types.ImageSummary
-	Created        int64
-	Labels         map[string]string
-	State          string
-	Status         string
-	SizeRootFs     int64
-}
-
-type Project struct {
-	ProjectName string
-	Containers  []Container
-}
-
-type Response struct {
-	Projects   map[string]Project
-	Containers []Container
-}
-
-func handler(w http.ResponseWriter, r *http.Request) {
-
-	cli, err := client.NewEnvClient()
-	if err != nil {
-		panic(err)
+/*
+func listen(serv *ws.Server, dockerapi *docker.Api) {
+	for {
+		container := <-dockerapi.Ch
+		msg := ws.Message{Author: "Go dispatcher", Body: "krop", Container: *container}
+		serv.SendAll(&msg)
 	}
+}*/
 
-	images := make(map[string]types.ImageSummary)
-	imageSummaries, err := cli.ImageList(context.Background(), types.ImageListOptions{})
-	if err != nil {
-		panic(err)
-	}
-	for _, imageSummary := range imageSummaries {
-		images[imageSummary.ID] = imageSummary
-	}
-
-	resp := Response{
-		Projects: make(map[string]Project),
-	}
-	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{Size: true})
-	for _, container := range containers {
-		c := Container{
-			ContainerNames: container.Names,
-			Image:          images[container.ImageID],
-			Created:        container.Created,
-			Labels:         container.Labels,
-			State:          container.State,
-			Status:         container.Status,
-			SizeRootFs:     container.SizeRootFs,
-		}
-		if projectName, ok := c.Labels["com.docker.compose.project"]; ok {
-			c.ServiceName = c.Labels["com.docker.compose.service"]
-			project := resp.Projects[projectName]
-			project.ProjectName = projectName
-			project.Containers = append(project.Containers, c)
-
-			resp.Projects[projectName] = project
-		} else {
-			resp.Containers = append(resp.Containers, c)
-		}
-		js, _ := json.Marshal(container)
-		fmt.Printf("%s %s\n", container.ID[:10], js)
-	}
-	jsonstr, err := json.Marshal(resp)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(jsonstr)
-}
 func main() {
+	//	url := "https://registry.blackwoodseven.com/"
+	username := "kj"       // anonymous
+	password := "12345678" // anonymous
+	r := docker.NewRegistry("registry.blackwoodseven.com", username, password)
+	//	r.Login()
+	/*
+		hub, err := registry.New(url, username, password)
+		if err != nil {
+			panic(err)
+		}
+		repositories, err := hub.Repositories()
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("repos", repositories)
+		manifest, err := hub.ManifestV2("blackwoodseven/version", "latest")
+		if err != nil {
+			panic(err)
+		}
+		fmt.Println("manifest", manifest)
+	*/
+	port := flag.Int("port", 80, "listening on port")
+	hosts := flag.String("hosts", "localhost", "hosts to include")
+	flag.Parse()
+	fmt.Println("starting server on port", *port)
+	for _, host := range strings.Split(*hosts, ";") {
+		fmt.Println("listening to:", host)
+	}
 	log.SetFlags(log.Lshortfile)
 
-	//server := ws.NewServer("/entry")
-	//go server.Listen()
+	// websocket server
+	server := ws.NewServer("/ws")
+	go server.Listen()
+
+	dockerapi := docker.NewApiClient(server, *r)
+	//go listen(server, dockerapi)
 
 	// static files
-	http.HandleFunc("/ps", handler)
-	http.Handle("/", http.FileServer(http.Dir("webroot")))
+	http.HandleFunc("/ps", dockerapi.Handler)
+	http.Handle("/", http.FileServer(http.Dir("/var/www")))
 
-	log.Fatal(http.ListenAndServe(":80", nil))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
 }

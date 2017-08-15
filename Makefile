@@ -28,7 +28,7 @@ fmt:
 
 
 run:
-	docker run -d -p 8080:80 -v /var/run/docker.sock:/var/run/docker.sock --name $(NAME) -t $(REPO)
+	docker run -d -p 8080:80 -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`/webroot:/var/www --env VERSION_HOSTS=stage-businesslogic.internal.blackwoodseven.com:81\;localhost:8080 --name $(NAME) -t $(REPO)
 
 stop:
 	docker rm -f $(NAME)

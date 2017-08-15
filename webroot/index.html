@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>This is a version of Version</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dot/1.1.2/doT.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
+<style>
+.pure-table-alert td {
+        background-color: #f29999;
+}
+</style>
+
+    <script id="page" type="text/x-dot-template">
+{{#def.projectlist}}
+{{#def.containerlist}}
+	</script>
+
+    <script id="projectlist" type="text/x-dot-template">
+<div class="pure-menu pure-menu-horizontal">
+Projects:
+    <ul class="pure-menu-list">
+{{~Object.keys(it.Projects) :name }}
+        <li class="pure-menu-item"><a href="#" onclick="project.pick('{{=name}}')" class="pure-menu-link">{{=name}}</a></li>
+{{~}}
+    </ul>
+</div>
+	</script>
+
+    <script id="containerlist" type="text/x-dot-template">
+<table class="pure-table pure-table-bordered">
+  <thead>
+    <tr>
+      <th>service</th>
+      <th>version prod</th>
+      <th>version registry</th>
+      <th>state</th>
+      <th>status</th>
+    </tr>
+  </thead>
+  <tbody>
+{{~it.Projects[project.name].Containers :container:name }}
+<tr{{?container.State != 'running'}} class="pure-table-alert"{{?}}>
+  <td>{{=container.ServiceName}}</td>
+  <td>{{?container.Image.Labels}}{{=container.Image.Labels.TAG_VERSION || '-'}}{{?}}</td>
+  <td>{{?container.LatestRegistryLabels}}{{=container.LatestRegistryLabels.TAG_VERSION || '-'}}{{?}}</td>
+  <td>{{=container.State}}</td>
+  <td>{{=container.Status}}</td>
+</tr>
+{{~}}
+  </tbody>
+</table>
+	</script>
+</head>
+
+<body>
+    <h1>Version</h1>
+    <div id="content">loading...</div>
+</body>
+
+<script>
+	var host = {}
+	var project = {
+		name: null,
+		pick: function(name) {
+			project.name=name;
+            document.getElementById('content').innerHTML = pagefn(host);
+        }
+    }
+    function text(id) { return document.getElementById(id).text; }
+	var def = {
+		'containerlist': text('containerlist'),
+		'projectlist': text('projectlist'),
+	}
+    var pagefn = doT.template(text('page'), null, def);
+
+    var ws = new WebSocket("ws://" + window.location.host + "/ws");
+    ws.onmessage = function(e) {
+        host = JSON.parse(e.data);
+        console.log('ws', host);
+
+        project.name = project.name || Object.keys(host.Projects)[0];
+        document.getElementById('content').innerHTML = pagefn(host);
+    }.bind(this);
+</script>
+</html>
