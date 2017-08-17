@@ -5,11 +5,28 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dot/1.1.2/doT.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/pure-min.css" integrity="sha384-nn4HPE8lTHyVtfCBi5yW9d20FjT8BJwUXyWZT9InLYax14RDjBj46LmSztkmNP9w" crossorigin="anonymous">
 <style>
+body { padding:20px}
+#content { clear:both;}
+h1, #wsstatus {float:left;}
+
 .pure-table-alert td {
-        background-color: #f29999;
+    background-color: #f29999;
 }
 .pure-table-warning td {
-        background-color: #f2f299;
+    background-color: #f2f299;
+}
+.badge-online, .badge-offline {
+    border-radius:20px;
+    padding:15px;
+    margin:20px;
+}
+.badge-online {
+    background: #d3eda3;
+    color: #72962e;
+}
+.badge-offline {
+    background: #f5ab9e;
+    color: #8c3a2b;
 }
 </style>
 
@@ -57,6 +74,7 @@ Projects:
 
 <body>
     <h1>Version</h1>
+    <div id="wsstatus">connecting...</div>
     <div id="content">loading...</div>
 </body>
 
@@ -77,6 +95,14 @@ Projects:
     var pagefn = doT.template(text('page'), null, def);
 
     var ws = new WebSocket("ws://" + window.location.host + "/ws");
+    ws.onopen = function(e) {
+        document.getElementById('wsstatus').innerHTML = '<div class="badge-online">Connected</div>';
+    }
+    ws.onclose = function(e) {
+        document.getElementById('wsstatus').innerHTML = '<div class="badge-offline">Offline</div>';
+    }
+    ws.onerror = ws.onclose;
+
     ws.onmessage = function(e) {
         host = JSON.parse(e.data);
         console.log('ws', host);

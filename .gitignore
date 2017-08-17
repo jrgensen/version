@@ -2,4 +2,5 @@
 /pkg/
 /src/*
 /src/version/version
+/src/version/version_suite_test.go
 !/src/version
