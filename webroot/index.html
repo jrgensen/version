@@ -42,10 +42,10 @@ Projects:
   </thead>
   <tbody>
 {{~it.Projects[project.name].Containers :container:name }}
-<tr{{?container.State != 'running'}} class="pure-table-alert"{{?? container.Image.Labels && container.LatestRegistryLabels && container.Image.Labels.TAG_VERSION != container.LatestRegistryLabels.TAG_VERSION}} class="pure-table-warning"{{?}}>
+<tr{{?container.State != 'running'}} class="pure-table-alert"{{?? container.DeployState == 'behind'}} class="pure-table-warning"{{?}}>
   <td>{{=container.ServiceName}}</td>
   <td>{{?container.Image.Labels}}{{=container.Image.Labels.TAG_VERSION || '-'}}{{?}}</td>
-  <td>{{?container.LatestRegistryLabels}}<a href="https://github.com/blackwoodseven/syslog/compare/master.2...master.4">{{=container.LatestRegistryLabels.TAG_VERSION || '-'}}</a>{{?}}</td>
+  <td>{{?container.LatestRegistryLabels}}{{=container.LatestRegistryLabels.TAG_VERSION || '-'}}{{?}}{{?container.DeployState == 'behind'}} [<a href="https://github.com/blackwoodseven/{{=container.ServiceName}}/compare/{{=container.Image.Labels.TAG_VERSION}}...{{=container.LatestRegistryLabels.TAG_VERSION}}">diff</a>]{{?}}</td>
   <td>{{=container.State}}</td>
   <td>{{=container.Status}}</td>
 </tr>

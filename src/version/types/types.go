@@ -14,6 +14,7 @@ type Container struct {
 	State                string
 	Status               string
 	SizeRootFs           int64
+	DeployState          string
 }
 
 type Project struct {

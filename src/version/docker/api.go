@@ -124,6 +124,15 @@ func (api *Api) reloadCache() {
 			State:                container.State,
 			Status:               container.Status,
 			SizeRootFs:           container.SizeRootFs,
+			DeployState:          "unknown",
+		}
+		if tagLabelLocal, ok := c.Labels["TAG_VERSION"]; ok {
+			if tagLabelRegistry, ok := c.LatestRegistryLabels["TAG_VERSION"]; ok {
+				c.DeployState = "uptodate"
+				if tagLabelLocal != tagLabelRegistry {
+					c.DeployState = "behind"
+				}
+			}
 		}
 		if projectName, ok := c.Labels["com.docker.compose.project"]; ok {
 			c.ServiceName = c.Labels["com.docker.compose.service"]
