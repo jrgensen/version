@@ -90,7 +90,7 @@ type registry struct {
 
 func NewRegistry(host string, user string, pass string) *registry {
 	reg := &registry{host: host, user: user, pass: pass, tokens: make(map[string]token), manifests: make(map[string]manifest)}
-	go reg.refreshManifestTimer(120)
+	go reg.refreshManifestTimer(180)
 	return reg
 }
 
@@ -141,7 +141,7 @@ func (r *registry) Labels(repo string, tag string) map[string]string {
 }
 func (r *registry) refreshManifestIfNeeded(repo string, tag string) error {
 	if _, ok := r.manifests[fmt.Sprintf("%s:%s", repo, tag)]; ok {
-		fmt.Println("manifest cached: %s:%s\n", repo, tag)
+		fmt.Printf("manifest cached: %s:%s\n", repo, tag)
 		return nil
 	}
 	return r.refreshManifest(repo, tag)
@@ -162,7 +162,6 @@ func (r *registry) refreshManifest(repo string, tag string) error {
 	r.refreshTokenIfNeeded(fmt.Sprintf("repository:%s:pull", scope))
 
 	url := fmt.Sprintf("https://%s/v2/%s/manifests/%s", host, scope, tag)
-	fmt.Println("fetching:", url)
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", r.tokens[fmt.Sprintf("repository:%s:pull", scope)].Token))
 	req.Header.Set("Accept", "application/vnd.docker.distribution.manifest.list.v2+json")
@@ -191,32 +190,6 @@ func (r *registry) refreshManifest(repo string, tag string) error {
 	return nil
 }
 
-/*
-func (r *registry) catalog() *catalog {
-	r.refreshTokenIfNeeded("registry:catalog:pull")
-
-	url := fmt.Sprintf("https://%s/v2/_catalog", r.host)
-	fmt.Println("fetching:", url)
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", r.tokens["registry:catalog:pull"].Token))
-	req.Header.Set("Accept", "application/json")
-
-	client := &http.Client{}
-	res, err := client.Do(req)
-	if err != nil {
-		return nil
-		//		return err
-	}
-	defer res.Body.Close()
-	if res.StatusCode != http.StatusOK {
-		fmt.Println("registry:catalog:pull", res.Status)
-		return nil
-	}
-
-	cat := &catalog{}
-	err = json.NewDecoder(res.Body).Decode(cat)
-	return cat
-}*/
 func (r *registry) refreshManifestTimer(seconds time.Duration) {
 	for {
 		fmt.Println("TIMER REFRESH")
