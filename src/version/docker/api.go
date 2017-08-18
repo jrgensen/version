@@ -75,8 +75,11 @@ func (api *Api) listenEvents() {
 			}
 			return
 		case e := <-messages:
-			fmt.Println("got event", e)
-			api.reloadCache()
+			jsonevent, _ := json.Marshal(e)
+			fmt.Println("GOT EVENT", string(jsonevent))
+            if e.Type == events.ContainerEventType {
+                api.reloadCache()
+            }
 		}
 	}
 }
@@ -105,7 +108,7 @@ func (api *Api) reloadCache() {
 		panic(err)
 	}
 
-	fmt.Println("fetching containers")
+	fmt.Println("fetching containers from local docker engine")
 	containers, err := api.client.ContainerList(context.Background(), dockertypes.ContainerListOptions{All: true})
 	for _, container := range containers {
 		image := images[container.ImageID]
@@ -113,7 +116,7 @@ func (api *Api) reloadCache() {
 		if len(image.RepoTags) > 0 {
 			repo = strings.Split(image.RepoTags[0], ":")[0]
 		}
-		fmt.Println("repo name", repo)
+		//fmt.Println("repo name", repo)
 
 		c := types.Container{
 			ContainerNames:       container.Names,

@@ -111,8 +111,8 @@ func (r *registry) refreshToken(scope string) error {
 	err = json.NewDecoder(res.Body).Decode(token)
 	if err != nil {
 		fmt.Println("GOT AN ERROR", err)
-        // if registry auth service is in limbo, we might not get valid json
-        return err
+		// if registry auth service is in limbo, we might not get valid json
+		return err
 	}
 	r.tokens[scope] = *token
 	//jwt, _ := base64.StdEncoding.DecodeString(strings.Split(token.Token, ".")[1])
