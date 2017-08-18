@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	dockertypes "github.com/docker/docker/api/types"
-	//	"github.com/docker/docker/api/types/events"
+	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/client"
 	"io"
 	"log"
@@ -77,9 +77,9 @@ func (api *Api) listenEvents() {
 		case e := <-messages:
 			jsonevent, _ := json.Marshal(e)
 			fmt.Println("GOT EVENT", string(jsonevent))
-            if e.Type == events.ContainerEventType {
-                api.reloadCache()
-            }
+			if e.Type == events.ContainerEventType {
+				api.reloadCache()
+			}
 		}
 	}
 }
