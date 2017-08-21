@@ -43,22 +43,27 @@ func NewServer(pattern string) *Server {
 }
 
 func (s *Server) Add(c *Client) {
+	log.Println("ADD 1")
 	s.addCh <- c
 }
 
 func (s *Server) Del(c *Client) {
+	log.Println("DELETE 1")
 	s.delCh <- c
 }
 
 func (s *Server) SendAll(msg *types.Message) {
+	log.Println("SENDALL 1")
 	s.sendAllCh <- msg
 }
 
 func (s *Server) Done() {
+	log.Println("DONE 1")
 	s.doneCh <- true
 }
 
 func (s *Server) Err(err error) {
+	log.Println("ERROR 1")
 	s.errCh <- err
 }
 
@@ -85,10 +90,13 @@ func (s *Server) Listen() {
 		defer func() {
 			err := ws.Close()
 			if err != nil {
+	log.Println("ERROR 2")
 				s.errCh <- err
 			}
 		}()
 
+		log.Printf("WS CONFIG: %+v\n", ws.Config())
+		log.Printf("WS REQUEST: %+v\n", ws.Request())
 		client := NewClient(ws, s)
 		s.Add(client)
 		client.Listen()
@@ -122,6 +130,7 @@ func (s *Server) Listen() {
 			log.Println("Error:", err.Error())
 
 		case <-s.doneCh:
+			log.Println("Done!")
 			return
 		}
 	}

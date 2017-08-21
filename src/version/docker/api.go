@@ -108,8 +108,12 @@ func (api *Api) reloadCache() {
 		panic(err)
 	}
 
-	fmt.Println("fetching containers from local docker engine")
+	fmt.Print("fetching containers from local docker engine... ")
 	containers, err := api.client.ContainerList(context.Background(), dockertypes.ContainerListOptions{All: true})
+	if err != nil {
+		panic(err)
+	}
+    fmt.Printf("[found %d]\n", len(containers))
 	for _, container := range containers {
 		image := images[container.ImageID]
 		var repo string
