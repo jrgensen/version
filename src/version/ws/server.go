@@ -122,7 +122,7 @@ func (s *Server) Listen() {
 
 		// broadcast message for all clients
 		case msg := <-s.sendAllCh:
-			log.Println("Send all:", msg)
+			log.Println("Send all:", msg, "[", len(s.clients), "]")
 			s.messages = s.messages[:0] // as long as we send everything in one chunk, do not cache history
 			s.messages = append(s.messages, msg)
 			s.sendAll(msg)
