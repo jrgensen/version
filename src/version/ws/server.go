@@ -1,10 +1,10 @@
 package ws
 
 import (
+	"golang.org/x/net/websocket"
 	"log"
 	"net/http"
-
-	"golang.org/x/net/websocket"
+	"time"
 	"version/types"
 )
 
@@ -63,7 +63,8 @@ func (s *Server) Done() {
 }
 
 func (s *Server) Err(err error) {
-	log.Println("ERROR 1")
+	t := time.Now()
+	log.Println("ERROR 1: ", t.Format(time.RFC3339))
 	s.errCh <- err
 }
 
@@ -90,7 +91,7 @@ func (s *Server) Listen() {
 		defer func() {
 			err := ws.Close()
 			if err != nil {
-	log.Println("ERROR 2")
+				log.Println("ERROR 2")
 				s.errCh <- err
 			}
 		}()
@@ -127,6 +128,9 @@ func (s *Server) Listen() {
 			s.sendAll(msg)
 
 		case err := <-s.errCh:
+			log.Println("HANDLING ERROR")
+			log.Println("DEBUG ERROR", err)
+
 			log.Println("Error:", err.Error())
 
 		case <-s.doneCh:

@@ -125,10 +125,10 @@ func (r *registry) refreshTokenIfNeeded(scope string) error {
 }
 
 func (r *registry) Labels(repo string, tag string) map[string]string {
-    err := r.refreshManifestIfNeeded(repo, tag)
-    if err != nil {
-        fmt.Println(err)
-    }
+	err := r.refreshManifestIfNeeded(repo, tag)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	v1 := &v1Compatibility{
 		Config:          &v1Config{Labels: make(map[string]string)},
@@ -136,7 +136,7 @@ func (r *registry) Labels(repo string, tag string) map[string]string {
 	}
 	if manifest, ok := r.manifests[fmt.Sprintf("%s:%s", repo, tag)]; ok {
 		if len(manifest.History) == 0 {
-            fmt.Printf("No history found (%s:%s)\n", repo, tag)
+			fmt.Printf("No history found (%s:%s)\n", repo, tag)
 			return nil
 		}
 		json.Unmarshal([]byte(manifest.History[0].V1Compatibility), v1)
