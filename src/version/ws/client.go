@@ -52,8 +52,7 @@ func (c *Client) Write(msg *types.Message) {
 	defer c.Unlock()
 	fmt.Printf(" - adding to client %d, chan length bofore add: %d\n", c.id, len(c.ch))
 	if len(c.ch) == channelBufSize {
-		fmt.Printf(" - adding to client %d, CHANNEL FULL\n", c.id)
-		c.doneCh <- true
+		c.Done()
 		return
 	}
 	select {
@@ -66,6 +65,7 @@ func (c *Client) Write(msg *types.Message) {
 }
 
 func (c *Client) Done() {
+	c.ws.Close()
 	c.doneCh <- true
 }
 
@@ -88,7 +88,7 @@ func (c *Client) listenWrite() {
 
 			err := websocket.JSON.Send(c.ws, msg)
 			if err != nil {
-				panic(err)
+				c.server.Err(fmt.Errorf("client %d is disconnected (%s).", c.id, err))
 			}
 
 		// receive done request
