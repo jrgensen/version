@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"time"
+	//	"time"
 
 	"golang.org/x/net/websocket"
 	"sync"
@@ -50,7 +50,7 @@ func (c *Client) Conn() *websocket.Conn {
 func (c *Client) Write(msg *types.Message) {
 	c.Lock()
 	defer c.Unlock()
-	fmt.Printf(" - adding to client %d, chan length bofore add: %d\n", c.id, len(c.ch))
+
 	if len(c.ch) == channelBufSize {
 		c.Done()
 		return
@@ -66,6 +66,7 @@ func (c *Client) Write(msg *types.Message) {
 
 func (c *Client) Done() {
 	c.ws.Close()
+	close(c.ch)
 	c.doneCh <- true
 }
 
@@ -84,10 +85,11 @@ func (c *Client) listenWrite() {
 		// send message to the client
 		case msg := <-c.ch:
 			log.Println("sending to client:", c.id)
-			c.ws.SetDeadline(time.Now().Add(30 * time.Second))
+			//			c.ws.SetDeadline(time.Now().Add(30 * time.Second))
 
 			err := websocket.JSON.Send(c.ws, msg)
 			if err != nil {
+				c.Done()
 				c.server.Err(fmt.Errorf("client %d is disconnected (%s).", c.id, err))
 			}
 
