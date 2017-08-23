@@ -9,7 +9,7 @@ import (
 	"version/types"
 )
 
-const channelBufSize = 100
+const channelBufSize = 10
 
 var maxId int = 0
 
@@ -45,13 +45,12 @@ func (c *Client) Conn() *websocket.Conn {
 }
 
 func (c *Client) Write(msg *types.Message) {
-	select {
-	case c.ch <- msg:
-	default:
+	if len(c.ch) == channelBufSize {
 		c.server.Del(c)
 		err := fmt.Errorf("client %d is disconnected.", c.id)
 		c.server.Err(err)
 	}
+	c.ch <- msg
 }
 
 func (c *Client) Done() {
