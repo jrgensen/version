@@ -15,6 +15,11 @@ env:
   - TAG_LATEST: latest
   - secure: bjZ47UafG3xzM7Y4SL1KJxnBn8t8UByVunlcrGON4AZ9qiybuLjBHMyGooTLhNIc24/Vt1W5lSRizGSLqbLeK91uhIVnEZJAEWOi3ZPwtm19w2gWLrRJdZJEbcm32qy4VuCrqARF2RVmxssSZlpBNNSlT037Jf8+B0VoYvwYV2bMEze8Xx9250NXpzXzuFF47ivxW/yu36IuCHd8r4BoImNTIhXxUWIRPLFczFEzwX0Oo8D97nyhkdi4TKjz0pQsFY7CNnI6gNX0zl0f+JEsxqlKOv/PgvEW2mVUY/tu2L1kUilXNYYlMiScWMuDbh0/I/AqTHcJaz3GNFiVGl5IxTZWOjN+Ep6ibhk9gW8QrMUpmAOrz2k7o5uG1Km5VNPnq2/PMuPHO+HEEeK2tgoGk3TreG9EvZruQ0xgbDcmp4jZlgxmVi3Dg1Yjy0uyHXvc/kx36QLajjy8jrtWSSkerMxpFJzadsSkzovrYg//w3SneukcURPZSf+MnKfbHzoa7k1RxgXoKHogf1b0rdLYZh1N3gtZdMU+1itc5KeRx2QMNn5LfUwQga6gTg+ArYv+6DRNTxRbuLtbz+BNuM6aCSNVKR1vwyyxy5pFIjALAFkTh3siDwAxnTkcm93b8Cg9ZBlTpXPMm2alfECo9vRHCLyJILksIqwCmTSdLb0tYXY=
 
+before_install:
+- sudo apt-get update
+- sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-engine
+- docker --version # for verification
+
 before_script:
 - docker login -u travis -p "$REGISTRY_PASSWORD" $REGISTRY
 - echo "LABEL GIT_COMMIT=$TRAVIS_COMMIT" >> Dockerfile
