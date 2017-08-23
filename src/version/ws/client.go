@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"golang.org/x/net/websocket"
+	"sync"
 	"version/types"
 )
 
@@ -20,6 +21,7 @@ type Client struct {
 	server *Server
 	ch     chan *types.Message
 	doneCh chan bool
+	sync.Mutex
 }
 
 // Create new client.
@@ -37,7 +39,7 @@ func NewClient(ws *websocket.Conn, server *Server) *Client {
 	ch := make(chan *types.Message, channelBufSize)
 	doneCh := make(chan bool)
 
-	return &Client{maxId, ws, server, ch, doneCh}
+	return &Client{id: maxId, ws: ws, server: server, ch: ch, doneCh: doneCh}
 }
 
 func (c *Client) Conn() *websocket.Conn {
@@ -45,7 +47,11 @@ func (c *Client) Conn() *websocket.Conn {
 }
 
 func (c *Client) Write(msg *types.Message) {
+	c.Lock()
+	defer c.Unlock()
+
 	if len(c.ch) == channelBufSize {
+		close(c.ch)
 		c.server.Del(c)
 		err := fmt.Errorf("client %d is disconnected.", c.id)
 		c.server.Err(err)
