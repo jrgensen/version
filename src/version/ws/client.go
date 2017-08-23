@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"time"
 
 	"golang.org/x/net/websocket"
 	"sync"
@@ -83,6 +84,8 @@ func (c *Client) listenWrite() {
 		// send message to the client
 		case msg := <-c.ch:
 			log.Println("sending to client:", c.id)
+			c.ws.SetDeadline(time.Now().Add(30 * time.Second))
+
 			err := websocket.JSON.Send(c.ws, msg)
 			if err != nil {
 				panic(err)
