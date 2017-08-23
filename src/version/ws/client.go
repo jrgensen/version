@@ -49,8 +49,9 @@ func (c *Client) Conn() *websocket.Conn {
 func (c *Client) Write(msg *types.Message) {
 	c.Lock()
 	defer c.Unlock()
-
+	fmt.Printf(" - adding to client %d, chan length bofore add: %d\n", c.id, len(c.ch))
 	if len(c.ch) == channelBufSize {
+		fmt.Printf(" - adding to client %d, CHANNEL FULL\n", c.id)
 		c.doneCh <- true
 		return
 	}
