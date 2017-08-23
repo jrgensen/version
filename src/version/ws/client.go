@@ -51,7 +51,8 @@ func (c *Client) Write(msg *types.Message) {
 	defer c.Unlock()
 
 	if len(c.ch) == channelBufSize {
-		close(c.ch)
+		c.doneCh <- true
+		return
 	}
 	select {
 	case c.ch <- msg:
