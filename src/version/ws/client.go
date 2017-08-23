@@ -52,11 +52,14 @@ func (c *Client) Write(msg *types.Message) {
 
 	if len(c.ch) == channelBufSize {
 		close(c.ch)
+	}
+	select {
+	case c.ch <- msg:
+	default:
 		c.server.Del(c)
 		err := fmt.Errorf("client %d is disconnected.", c.id)
 		c.server.Err(err)
 	}
-	c.ch <- msg
 }
 
 func (c *Client) Done() {
