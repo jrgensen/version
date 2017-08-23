@@ -65,8 +65,8 @@ func (c *Client) Write(msg *types.Message) {
 }
 
 func (c *Client) Done() {
+	log.Println("Client is done, closing!:", c.id)
 	c.ws.Close()
-	close(c.ch)
 	c.doneCh <- true
 }
 
@@ -85,7 +85,6 @@ func (c *Client) listenWrite() {
 		// send message to the client
 		case msg := <-c.ch:
 			log.Println("sending to client:", c.id)
-			//			c.ws.SetDeadline(time.Now().Add(30 * time.Second))
 
 			err := websocket.JSON.Send(c.ws, msg)
 			if err != nil {
