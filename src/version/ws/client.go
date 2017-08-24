@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"io"
 	"log"
-	//	"time"
+	"time"
 
 	"golang.org/x/net/websocket"
-	"sync"
+	//	"sync"
 	"version/types"
 )
 
@@ -22,7 +22,7 @@ type Client struct {
 	server *Server
 	ch     chan *types.Message
 	doneCh chan bool
-	sync.Mutex
+	//	sync.Mutex
 }
 
 // Create new client.
@@ -48,10 +48,10 @@ func (c *Client) Conn() *websocket.Conn {
 }
 
 func (c *Client) Write(msg *types.Message) {
-	c.Lock()
-	defer c.Unlock()
+	//	c.Lock()
+	//	defer c.Unlock()
 
-	if len(c.ch) == channelBufSize {
+	if len(c.ch) == cap(c.ch) {
 		log.Println("Client buffer full, closing connection.")
 		c.server.Del(c)
 		log.Println("Client buffer full, connection closed.")
@@ -91,7 +91,10 @@ func (c *Client) listenWrite() {
 		case msg := <-c.ch:
 			log.Println("sending to client:", c.id)
 
+			c.ws.SetWriteDeadline(time.Now().Add(5 * time.Second))
+
 			err := websocket.JSON.Send(c.ws, msg)
+			c.ws.SetWriteDeadline(time.Time{}) // disabling timeout
 			if err != nil {
 				log.Println("client error:", err)
 				c.Done()
