@@ -53,6 +53,8 @@ func (c *Client) Write(msg *types.Message) {
 
 	if len(c.ch) == channelBufSize {
 		log.Println("Client buffer full, closing connection.")
+		c.server.Del(c)
+		log.Println("Client buffer full, connection closed.")
 		c.Done()
 		return
 	}
@@ -66,7 +68,7 @@ func (c *Client) Write(msg *types.Message) {
 }
 
 func (c *Client) Done() {
-	log.Println("Client is done, closing!:", c.id)
+	log.Println("Client is done, closing!:", c.id, " doneCh length:", len(c.doneCh))
 	c.doneCh <- true
 	log.Println("Client is done, done channel true:", c.id)
 	c.ws.Close()
@@ -122,6 +124,7 @@ func (c *Client) listenRead() {
 
 		// read data from websocket connection
 		default:
+			log.Println("Doing client default stuff, id:", c.id)
 			var msg types.Message
 			err := websocket.JSON.Receive(c.ws, &msg)
 			if err == io.EOF {
@@ -131,6 +134,7 @@ func (c *Client) listenRead() {
 			} else {
 				c.server.SendAll(&msg)
 			}
+			log.Println("Done doing client default stuff, id:", c.id)
 		}
 	}
 }
