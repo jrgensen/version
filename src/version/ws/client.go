@@ -67,8 +67,10 @@ func (c *Client) Write(msg *types.Message) {
 
 func (c *Client) Done() {
 	log.Println("Client is done, closing!:", c.id)
-	c.ws.Close()
 	c.doneCh <- true
+	log.Println("Client is done, done channel true:", c.id)
+	c.ws.Close()
+	log.Println("Client is done, ALL DONE:", c.id)
 }
 
 // Listen Write and Read request via chanel
@@ -97,7 +99,7 @@ func (c *Client) listenWrite() {
 
 		// receive done request
 		case <-c.doneCh:
-			log.Println("Client closing write connection")
+			log.Println("Client closing write connection", c.id)
 			c.server.Del(c)
 			c.doneCh <- true // for listenRead method
 			return
@@ -113,7 +115,7 @@ func (c *Client) listenRead() {
 
 		// receive done request
 		case <-c.doneCh:
-			log.Println("Client closing read connection")
+			log.Println("Client closing read connection, id:", c.id)
 			c.server.Del(c)
 			c.doneCh <- true // for listenWrite method
 			return
