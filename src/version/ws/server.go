@@ -100,7 +100,9 @@ func (s *Server) Listen() {
 		log.Printf("WS REQUEST: %+v\n", ws.Request())
 		client := NewClient(ws, s)
 		s.Add(client)
+		log.Printf("Client connected, setting up listeners.\n")
 		client.Listen()
+		log.Printf("Client connected and listening.\n")
 	}
 	http.Handle(s.pattern, websocket.Handler(onConnected))
 	log.Println("Created handler")
