@@ -52,8 +52,6 @@ func (c *Client) Write(msg *types.Message) {
 	//	defer c.Unlock()
 
 	if len(c.ch) == cap(c.ch) {
-		log.Println("Client buffer full, closing connection.")
-		c.server.Del(c)
 		log.Println("Client buffer full, connection closed.")
 		c.Done()
 		return
@@ -70,9 +68,6 @@ func (c *Client) Write(msg *types.Message) {
 func (c *Client) Done() {
 	log.Println("Client is done, closing!:", c.id, " doneCh length:", len(c.doneCh))
 	c.doneCh <- true
-	log.Println("Client is done, done channel true:", c.id)
-	c.ws.Close()
-	log.Println("Client is done, ALL DONE:", c.id)
 }
 
 // Listen Write and Read request via chanel
@@ -96,9 +91,9 @@ func (c *Client) listenWrite() {
 			err := websocket.JSON.Send(c.ws, msg)
 			c.ws.SetWriteDeadline(time.Time{}) // disabling timeout
 			if err != nil {
-				log.Println("client error:", err)
-				c.Done()
 				c.server.Err(fmt.Errorf("client %d is disconnected (%s).", c.id, err))
+                c.doneCh <- true // for listenRead method
+                return
 			}
 			log.Println("content send to client:", c.id)
 
