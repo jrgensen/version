@@ -38,7 +38,7 @@ func NewClient(ws *websocket.Conn, server *Server) *Client {
 
 	maxId++
 	ch := make(chan *types.Message, channelBufSize)
-	doneCh := make(chan bool)
+	doneCh := make(chan bool, 1)
 
 	return &Client{id: maxId, ws: ws, server: server, ch: ch, doneCh: doneCh}
 }
@@ -92,8 +92,10 @@ func (c *Client) listenWrite() {
 			c.ws.SetWriteDeadline(time.Time{}) // disabling timeout
 			if err != nil {
 				c.server.Err(fmt.Errorf("client %d is disconnected (%s).", c.id, err))
-                c.doneCh <- true // for listenRead method
-                return
+				c.server.Del(c)
+				c.doneCh <- true // for listenRead method
+				log.Println("All done:", c.id)
+				return
 			}
 			log.Println("content send to client:", c.id)
 
