@@ -62,7 +62,7 @@ Projects:
 <tr{{?container.State != 'running'}} class="pure-table-alert"{{?? container.DeployState == 'behind'}} class="pure-table-warning"{{?}}>
   <td>{{=container.ServiceName}}</td>
   <td>{{?container.Image.Labels}}{{=container.Image.Labels.TAG_VERSION || '-'}}{{?}}</td>
-  <td>{{?container.LatestRegistryLabels}}{{=container.LatestRegistryLabels.TAG_VERSION || '-'}}{{?}}{{?container.DeployState == 'behind'}} [<a href="https://github.com/blackwoodseven/{{=container.ServiceName}}/compare/{{=container.Image.Labels.TAG_VERSION}}...{{=container.LatestRegistryLabels.TAG_VERSION}}">diff</a>]{{?}}</td>
+  <td>{{?container.LatestRegistryLabels}}{{=container.LatestRegistryLabels.TAG_VERSION || '-'}}{{?}}{{?container.DeployState == 'behind'}} [<a href="https://github.com/blackwoodseven/{{=container.ServiceName}}/compare/{{=container.Image.Labels.GIT_COMMIT}}...{{=container.LatestRegistryLabels.GIT_COMMIT}}">diff</a>]{{?}}</td>
   <td>{{=container.State}}</td>
   <td>{{=container.Status}}</td>
 </tr>
