@@ -1,0 +1,8 @@
+version: '2'
+
+services:
+    version:
+        image: registry.blackwoodseven.com/blackwoodseven/version
+        build: ../version
+        volumes:
+            - "../version/webroot:/var/www"
