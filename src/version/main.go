@@ -10,6 +10,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 	"version/docker"
 	"version/ws"
 )
@@ -27,27 +28,14 @@ func main() {
 	//	url := "https://registry.blackwoodseven.com/"
 	username := "kj"       // anonymous
 	password := "12345678" // anonymous
-	r := docker.NewRegistry("registry.blackwoodseven.com", username, password)
-	//	r.Login()
-	/*
-		hub, err := registry.New(url, username, password)
-		if err != nil {
-			panic(err)
-		}
-		repositories, err := hub.Repositories()
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println("repos", repositories)
-		manifest, err := hub.ManifestV2("blackwoodseven/version", "latest")
-		if err != nil {
-			panic(err)
-		}
-		fmt.Println("manifest", manifest)
-	*/
+
+	rri := flag.Int("rri", 180, "Registry refresh interval (senconds)")
 	port := flag.Int("port", 80, "listening on port")
 	hosts := flag.String("hosts", "localhost", "hosts to include")
 	flag.Parse()
+
+	r := docker.NewRegistry("registry.blackwoodseven.com", time.Duration(*rri), username, password)
+
 	fmt.Println("starting server on port", *port)
 	for _, host := range strings.Split(*hosts, ";") {
 		fmt.Println("listening to:", host)

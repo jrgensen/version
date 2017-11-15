@@ -88,9 +88,9 @@ type registry struct {
 	sync.Mutex
 }
 
-func NewRegistry(host string, user string, pass string) *registry {
+func NewRegistry(host string, rri time.Duration, user string, pass string) *registry {
 	reg := &registry{host: host, user: user, pass: pass, tokens: make(map[string]token), manifests: make(map[string]manifest)}
-	go reg.refreshManifestTimer(180)
+	go reg.refreshManifestTimer(rri)
 	return reg
 }
 
@@ -146,7 +146,6 @@ func (r *registry) Labels(repo string, tag string) map[string]string {
 }
 func (r *registry) refreshManifestIfNeeded(repo string, tag string) error {
 	if _, ok := r.manifests[fmt.Sprintf("%s:%s", repo, tag)]; ok {
-		fmt.Printf("manifest cached: %s:%s\n", repo, tag)
 		return nil
 	}
 	return r.refreshManifest(repo, tag)
@@ -187,7 +186,6 @@ func (r *registry) refreshManifest(repo string, tag string) error {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Refreshed manifest: %s:%s\n", repo, tag)
 	r.Lock()
 	defer r.Unlock()
 
