@@ -2,12 +2,14 @@ package docker
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	dockertypes "github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/events"
 	"github.com/docker/docker/client"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -158,6 +160,20 @@ func (api *Api) reloadCache() {
 	api.host = &host
 }
 
+func (api *Api) Login(registry string, un string, pw string) {
+	auth := dockertypes.AuthConfig{
+		Username:      un,
+		Password:      pw,
+		ServerAddress: registry,
+	}
+	authResp, err := api.client.RegistryLogin(context.Background(), auth)
+
+	js, _ := json.Marshal(authResp)
+	fmt.Printf("%s\n", js)
+	fmt.Printf("%s %s\n", authResp, err)
+
+}
+
 func (api *Api) Handler(w http.ResponseWriter, r *http.Request) {
 	jsonstr, err := json.Marshal(api.host)
 	if err != nil {
@@ -166,4 +182,40 @@ func (api *Api) Handler(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jsonstr)
+}
+
+func (api *Api) PullHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("login to registry")
+	api.Login("registry.blackwoodseven.com", "kj", "12345678")
+	fmt.Println("pulling images")
+	ref := r.URL.Query().Get("ref")
+
+	authConfig := dockertypes.AuthConfig{
+		Username: "kj",
+		Password: "12345678",
+	}
+	encodedJSON, err := json.Marshal(authConfig)
+	if err != nil {
+		panic(err)
+	}
+	authStr := base64.URLEncoding.EncodeToString(encodedJSON)
+
+	readCloser, err := api.client.ImagePull(context.Background(), ref, dockertypes.ImagePullOptions{
+		//        All: true,
+		RegistryAuth: authStr,
+	})
+	if err != nil {
+		fmt.Println("%s", err)
+		w.Write([]byte(fmt.Sprintf("Got error: %v", err)))
+		return
+	}
+	//defer readCloser.Close()
+
+	body, err := ioutil.ReadAll(readCloser)
+	if err != nil {
+		fmt.Println("%s", err)
+		w.Write([]byte(fmt.Sprintf("Got another error: %v", err)))
+		return
+	}
+	w.Write(body)
 }

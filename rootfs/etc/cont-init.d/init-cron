@@ -1,0 +1,5 @@
+#!/usr/bin/with-contenv sh
+
+mkdir -p /etc/crontabs
+echo "$CRON" > /etc/crontabs/root
+echo "cron initialized"

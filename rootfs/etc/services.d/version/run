@@ -1,0 +1,3 @@
+#!/usr/bin/with-contenv sh
+
+exec /bin/version -port=80 -hosts=$VERSION_HOSTS

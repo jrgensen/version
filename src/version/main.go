@@ -49,8 +49,11 @@ func main() {
 	dockerapi := docker.NewApiClient(server, *r)
 	//go listen(server, dockerapi)
 
-	// static files
 	http.HandleFunc("/ps", dockerapi.Handler)
+	http.HandleFunc("/pull", dockerapi.PullHandler)
+	http.HandleFunc("/compose", dockerapi.ComposeHandler)
+
+	// static files
 	http.Handle("/", http.FileServer(http.Dir("/var/www")))
 
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), nil))
