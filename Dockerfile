@@ -12,8 +12,6 @@ COPY /rootfs /
 
 ADD bin/version /bin/version
 ADD webroot /var/www
-ADD docker-compose.yml /docker-compose.yml
-ADD config.json /root/.docker/config.json
 
 EXPOSE 80
 ENTRYPOINT ["/init"]
